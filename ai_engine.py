@@ -19,26 +19,4 @@ def mock_gemini_evaluator(system_prompt, user_text):
         return response.text
         
     except Exception as e:
-        return f"Uh oh, something went wrong with the AI request: {str(e)}"    
-    mock_inbox = [
-        "URGENT: The investor deck deadline is moved to 3 PM today. Please review ASAP.",
-        "Weekly newsletter draft is ready for your review whenever you have time."
-    ]
-
-    for i, email in enumerate(mock_inbox):
-        decision_raw = mock_gemini_evaluator(email)
-        decision = json.loads(decision_raw)
-        
-        results.append({
-            "email": email,
-            "decision": decision
-        })
-
-    return jsonify({
-        "status": "Antigravity Workspace Pro - Agent Initialized",
-        "processed_emails": results
-    })
-
-if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 8080))
-    app.run(debug=True, host='0.0.0.0', port=port)
+        return f"Uh oh, something went wrong with the AI request: {str(e)}"
