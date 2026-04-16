@@ -1,5 +1,8 @@
 import json
 import os
+from flask import Flask, jsonify
+
+app = Flask(__name__)
 
 # Define the PromptWars System Prompt (CO-STAR Framework)
 SYSTEM_PROMPT = """
@@ -35,8 +38,9 @@ def mock_gemini_evaluator(email_content):
             "action": "LOG_SHEETS"
         })
 
+@app.route("/", methods=["GET", "POST"])
 def process_inbox():
-    print("🚀 Antigravity Workspace Pro - Agent Initialized\n")
+    results = []
     
     mock_inbox = [
         "URGENT: The investor deck deadline is moved to 3 PM today. Please review ASAP.",
@@ -44,18 +48,19 @@ def process_inbox():
     ]
 
     for i, email in enumerate(mock_inbox):
-        print(f"📧 Processing Email {i+1}: '{email[:40]}...'")
-        
-        # 1. AI Decision Making
         decision_raw = mock_gemini_evaluator(email)
         decision = json.loads(decision_raw)
         
-        # 2. Agentic Routing to Google Services
-        if decision["action"] == "SCHEDULE_CALENDAR":
-            print(f"   ↳ 🚨 URGENT: Triggering Google Calendar API to block 15 mins for review.")
-        elif decision["action"] == "LOG_SHEETS":
-            print(f"   ↳ 📊 NORMAL: Logging summary to Google Sheets 'Daily Briefing'.")
-        print("-" * 40)
+        results.append({
+            "email": email,
+            "decision": decision
+        })
+
+    return jsonify({
+        "status": "Antigravity Workspace Pro - Agent Initialized",
+        "processed_emails": results
+    })
 
 if __name__ == "__main__":
-    process_inbox()
+    port = int(os.environ.get('PORT', 8080))
+    app.run(debug=True, host='0.0.0.0', port=port)
