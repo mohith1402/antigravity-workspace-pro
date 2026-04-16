@@ -1,62 +1,39 @@
 import streamlit as st
-import json
-from app import mock_gemini_evaluator
+from ai_engine import mock_gemini_evaluator
 
-st.set_page_config(page_title="Antigravity Workspace Pro", page_icon="🚀", layout="centered")
+# 1. Page Setup (Must be the first Streamlit command)
+st.set_page_config(
+    page_title="Antigravity Workspace", 
+    page_icon="🚀",
+    layout="centered"
+)
 
-st.title("🚀 Antigravity Workspace Pro")
-st.subheader("Agent Evaluator UI")
+# 2. Header
+st.title("🚀 Antigravity Prompt Evaluator")
+st.markdown("Drop your text below and let Gemini evaluate it based on your custom rules.")
 
-st.markdown("This app wraps the core logic of the Antigravity Agent, automatically categorizing emails based on priority and routing them.")
+# 3. User Inputs
+st.subheader("1. Setup the AI")
+system_prompt = st.text_area(
+    "System Prompt (How should the AI behave?)", 
+    value="You are an expert editor. Evaluate the following text for clarity, tone, and grammar.",
+    height=100
+)
 
-st.divider()
+st.subheader("2. Add your Content")
+user_input = st.text_area("Paste the text or email you want to evaluate here:", height=150)
 
-st.markdown("### Test Custom Email")
-email_content = st.text_area("Enter an email to be evaluated:", "URGENT: The investor deck deadline is moved to 3 PM today. Please review ASAP.")
-
-if st.button("Evaluate Email", type="primary"):
-    with st.spinner("Agent is thinking..."):
-        decision_raw = mock_gemini_evaluator(email_content)
-        decision = json.loads(decision_raw)
-        
-        st.success("Evaluation complete!")
-        
-        # Display nicely based on priority
-        if decision.get("priority") == "Urgent":
-            st.error(f"Priority: {decision.get('priority')} | Action: {decision.get('action')}")
-        else:
-            st.info(f"Priority: {decision.get('priority')} | Action: {decision.get('action')}")
+# 4. Action Button
+if st.button("Evaluate Now", type="primary"):
+    # Don't run if the user didn't type anything
+    if not user_input.strip():
+        st.warning("Please enter some text to evaluate first!")
+    else:
+        # Show a friendly loading state while waiting for Gemini
+        with st.spinner("AI is analyzing your text..."):
+            result = mock_gemini_evaluator(system_prompt, user_input)
             
-        st.write("**Summary:**")
-        st.write(decision.get("summary"))
-        
-        with st.expander("Raw JSON output"):
-            st.json(decision)
-
-st.divider()
-
-st.markdown("### Process Mock Inbox")
-st.markdown("Run the standard test inbox through the agent (like the original `app.py`).")
-
-if st.button("Process Default Inbox"):
-    mock_inbox = [
-        "URGENT: The investor deck deadline is moved to 3 PM today. Please review ASAP.",
-        "Weekly newsletter draft is ready for your review whenever you have time."
-    ]
-    
-    results = []
-    with st.spinner("Processing inbox..."):
-        for email in mock_inbox:
-            decision_raw = mock_gemini_evaluator(email)
-            decision = json.loads(decision_raw)
-            results.append({
-                "email": email,
-                "decision": decision
-            })
-    
-    st.success("Inbox processed successfully!")
-    for res in results:
-        with st.container():
-            st.markdown(f"**Email:** {res['email']}")
-            st.json(res["decision"])
-            st.markdown("---")
+            # Display the output
+            st.success("Evaluation Complete!")
+            st.markdown("### AI Feedback")
+            st.write(result)
