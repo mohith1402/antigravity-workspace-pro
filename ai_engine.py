@@ -1,40 +1,33 @@
-import json
 import os
-from flask import Flask, jsonify
+import google.generativeai as genai
 
-app = Flask(__name__)
-
-# Define the PromptWars System Prompt (CO-STAR Framework)
-SYSTEM_PROMPT = """
-[CONTEXT] You are an elite Executive Assistant Agent operating inside Google Workspace.
-[OBJECTIVE] Analyze the following email text. Extract key points and determine the priority level.
-[STYLE] Highly analytical and machine-readable.
-[TONE] Objective and decisive.
-[AUDIENCE] Automated routing systems.
-[RESPONSE] Return strictly valid JSON with no markdown formatting.
-Format required: {"summary": "brief text", "priority": "Urgent/Normal/Low", "action": "SCHEDULE_CALENDAR" or "LOG_SHEETS"}
-
-Logic Rules:
-- If the email mentions deadlines, immediate action, or VIP clients, priority is "Urgent" and action is "SCHEDULE_CALENDAR".
-- Otherwise, priority is "Normal/Low" and action is "LOG_SHEETS".
-"""
-
-def mock_gemini_evaluator(email_content):
+def mock_gemini_evaluator(system_prompt, user_text):
     """
-    In a production Antigravity environment, this calls Gemini 3 Pro.
-    For this prototype, we simulate the LLM's logical routing based on the System Prompt.
+    Calls the Gemini API to evaluate the given text based on the system prompt.
     """
-    content_lower = email_content.lower()
-    if "urgent" in content_lower or "asap" in content_lower or "deadline" in content_lower:
-        return json.dumps({
-            "summary": "Time-sensitive request detected.",
-            "priority": "Urgent",
-            "action": "SCHEDULE_CALENDAR"
-        })
-    else:
-        return json.dumps({
-            "summary": "Standard update.",
-            "priority": "Normal",
+    # Grab the API key from environment variables (Streamlit Secrets)
+    api_key = os.environ.get("GEMINI_API_KEY")
+    
+    if not api_key:
+        return "⚠️ Error: GEMINI_API_KEY is missing. Please add it to your Streamlit Secrets."
+    
+    # Configure the Gemini client
+    genai.configure(api_key=api_key)
+    
+    try:
+        # gemini-1.5-flash is fast and great for general text evaluation
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        # Combine the instructions and the user's text
+        full_prompt = f"System Instructions:\n{system_prompt}\n\nText to Evaluate:\n{user_text}"
+        
+        # Call the API
+        response = model.generate_content(full_prompt)
+        return response.text
+        
+    except Exception as e:
+        # Catch any API errors so the app doesn't crash completely
+        return f"Uh oh, something went wrong with the AI request: {str(e)}"            "priority": "Normal",
             "action": "LOG_SHEETS"
         })
 
