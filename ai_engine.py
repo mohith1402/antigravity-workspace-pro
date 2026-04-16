@@ -13,7 +13,7 @@ def mock_gemini_evaluator(system_prompt, user_text):
     genai.configure(api_key=api_key)
     
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         full_prompt = f"System Instructions:\n{system_prompt}\n\nText to Evaluate:\n{user_text}"
         response = model.generate_content(full_prompt)
         return response.text
