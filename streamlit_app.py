@@ -10,9 +10,6 @@ st.set_page_config(
 
 # 2. Header
 st.title("🚀 Antigravity Prompt Evaluator")
-import os
-test_key = os.environ.get("GEMINI_API_KEY", "")
-st.info(f"🔍 DEBUG: Key is {len(test_key)} characters long and starts with: {test_key[:6]}")
 st.markdown("Drop your text below and let Gemini evaluate it based on your custom rules.")
 
 # 3. User Inputs
