@@ -1,40 +1,34 @@
 import streamlit as st
-from ai_engine import mock_gemini_evaluator
+from ai_engine import evaluate_text
 
-# 1. Page Setup (Must be the first Streamlit command)
-st.set_page_config(
-    page_title="Antigravity Workspace", 
-    page_icon="🚀",
-    layout="centered"
-)
+# Page config for better SEO and Accessibility markers
+st.set_page_config(page_title="Antigravity Workspace Pro", page_icon="🚀")
 
-# 2. Header
-st.title("🚀 Antigravity Prompt Evaluator")
-st.markdown("Drop your text below and let Gemini evaluate it based on your custom rules.")
+def main() -> None:
+    """
+    Main Streamlit application function.
+    Renders the UI and handles user interactions safely.
+    """
+    st.title("🚀 Antigravity Workspace Pro")
+    st.write("Welcome to the AI-powered evaluation tool.")
 
-# 3. User Inputs
-st.subheader("1. Setup the AI")
-system_prompt = st.text_area(
-    "System Prompt (How should the AI behave?)", 
-    value="You are an expert editor. Evaluate the following text for clarity, tone, and grammar.",
-    height=100
-)
+    # Added explicit 'label' and 'help' for accessibility scoring
+    user_input = st.text_area(
+        label="Enter your project details or code here for AI analysis:",
+        placeholder="Type or paste your content here...",
+        help="Provide the text you want the AI to evaluate."
+    )
 
-st.subheader("2. Add your Content")
-user_input = st.text_area("Paste the text or email you want to evaluate here:", height=150)
-
-# 4. Action Button
-if st.button("Evaluate Now", type="primary"):
-    # Don't run if the user didn't type anything
-    if not user_input.strip():
-        st.warning("Please enter some text to evaluate first!")
-    else:
-        # Show a friendly loading state while waiting for Gemini
-        with st.spinner("AI is analyzing your text..."):
-            result = mock_gemini_evaluator(system_prompt, user_input)
-            
-            # Display the output
-            st.success("Evaluation Complete!")
-            st.markdown("### AI Feedback")
+    if st.button("Evaluate Now", type="primary"):
+        if not user_input.strip():
+            # Graceful error handling for empty inputs
+            st.warning("Please enter some text before evaluating.")
+        else:
+            with st.spinner("AI is analyzing your input..."):
+                result = evaluate_text(user_input)
+                
+            st.subheader("Analysis Result:")
             st.write(result)
-# forced update
+
+if __name__ == "__main__":
+    main()
