@@ -1,22 +1,37 @@
 import os
 import google.generativeai as genai
+import streamlit as st
 
-def mock_gemini_evaluator(system_prompt, user_text):
+@st.cache_resource
+def load_model() -> genai.GenerativeModel:
     """
-    Calls the Gemini API to evaluate the given text based on the system prompt.
+    Initializes and caches the Google Gemini Generative Model.
+    Ensures efficiency by preventing redundant model loading on every UI click.
     """
-    api_key = os.environ.get("GEMINI_API_KEY")
+    # Fetch API key securely from Streamlit Secrets
+    api_key = st.secrets.get("GEMINI_API_KEY") or os.environ.get("GEMINI_API_KEY")
+    if api_key:
+        genai.configure(api_key=api_key)
     
-    if not api_key:
-        return "⚠️ Error: GEMINI_API_KEY is missing. Please add it to your Streamlit Secrets."
+    return genai.GenerativeModel('gemini-2.5-flash')
+
+def evaluate_text(user_input: str) -> str:
+    """
+    Evaluates the user's text input using the Google Gemini AI model.
     
-    genai.configure(api_key=api_key)
-    
-    try:
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        full_prompt = f"System Instructions:\n{system_prompt}\n\nText to Evaluate:\n{user_text}"
-        response = model.generate_content(full_prompt)
-        return response.text
+    Args:
+        user_input (str): The text provided by the user.
         
+    Returns:
+        str: The AI-generated evaluation response or a safe error message.
+    """
+    if not user_input or not user_input.strip():
+        return "Error: No input provided for evaluation."
+        
+    try:
+        model = load_model()
+        response = model.generate_content(user_input)
+        return response.text
     except Exception as e:
-        return f"Uh oh, something went wrong with the AI request: {str(e)}"
+        # Handles 429 quota errors and generic crashes safely
+        return f"Service currently unavailable. Please try again later. (System note: {str(e)})"
